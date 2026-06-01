@@ -1,0 +1,15 @@
+{
+  "session_count": 1,
+  "project": "ai-chess",
+  "started_at": "2026-06-01",
+  "authors": ["Moti", "Claude"],
+  "notes": "Brand new project. Connector + indexer not wired in yet, so using a local session log instead of the semantic notebook for now.",
+  "sessions": [
+    {
+      "session": 1,
+      "date": "2026-06-01",
+      "summary_start": "Kicked off the ai-chess project. Empty repo, no connector/indexer yet. Setting up the foundation.",
+      "summary_end": null
+    }
+  ]
+}
