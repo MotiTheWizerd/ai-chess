@@ -64,6 +64,57 @@ body {
 
 .board-wrap {
   width: 100%;
+  position: relative;
+}
+
+/* ---- Promotion picker ---- */
+.promo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 16, 18, 0.55);
+  backdrop-filter: blur(2px);
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.promo__panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.promo__title {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 0.6rem;
+}
+
+.promo__choices {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.promo__piece {
+  width: 56px;
+  height: 56px;
+  font-size: 2.2rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.promo__piece:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ---- Side panel ---- */

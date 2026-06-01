@@ -11,6 +11,14 @@ type GameStatus = {
   tone: 'normal' | 'check' | 'over'
 }
 
+type PromotionPiece = 'q' | 'r' | 'b' | 'n'
+
+type PendingPromotion = {
+  from: Square
+  to: Square
+  color: 'w' | 'b'
+}
+
 export function ChessGame() {
   // The chess.js instance is our deterministic referee. It owns the rules;
   // we never let an illegal move touch the board.
@@ -21,6 +29,9 @@ export function ChessGame() {
   const [fen, setFen] = useState(game.fen())
   const [orientation, setOrientation] = useState<'white' | 'black'>('white')
   const [selected, setSelected] = useState<Square | null>(null)
+
+  // A pawn move awaiting the player's promotion choice (null = none pending).
+  const [pending, setPending] = useState<PendingPromotion | null>(null)
 
   // Recompute derived view-state whenever the position changes.
   const { history, status, lastMove } = useMemo(() => {
@@ -54,17 +65,35 @@ export function ChessGame() {
     return styles
   }, [selected, lastMove, fen, game])
 
-  /** Attempt a move through the referee. Returns true if it was legal. */
-  function tryMove(from: Square, to: Square): boolean {
+  /** Does moving from→to require a promotion choice? */
+  function needsPromotion(from: Square, to: Square): boolean {
+    return game
+      .moves({ square: from, verbose: true })
+      .some((m) => m.to === to && m.promotion != null)
+  }
+
+  /** Attempt a move through the referee. Returns true if it was applied. */
+  function tryMove(from: Square, to: Square, promotion?: PromotionPiece): boolean {
+    // Pawn reaching the last rank: defer the move until the player picks a piece.
+    if (!promotion && needsPromotion(from, to)) {
+      setPending({ from, to, color: game.turn() })
+      return false
+    }
     try {
-      // Auto-queen on promotion for now — a promotion picker is a TODO.
-      game.move({ from, to, promotion: 'q' })
+      game.move({ from, to, promotion: promotion ?? 'q' })
       setFen(game.fen())
       setSelected(null)
       return true
     } catch {
       return false // illegal — chess.js threw, board snaps the piece back
     }
+  }
+
+  /** Resolve a pending promotion with the player's chosen piece. */
+  function choosePromotion(piece: PromotionPiece) {
+    if (!pending) return
+    tryMove(pending.from, pending.to, piece)
+    setPending(null)
   }
 
   function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
@@ -119,6 +148,13 @@ export function ChessGame() {
             id: 'ai-chess-board',
           }}
         />
+        {pending && (
+          <PromotionPicker
+            color={pending.color}
+            onPick={choosePromotion}
+            onCancel={() => setPending(null)}
+          />
+        )}
       </div>
 
       <aside className="panel">
@@ -148,6 +184,50 @@ function computeStatus(game: Chess): GameStatus {
   if (game.isDraw()) return { text: 'Draw — 50-move rule', tone: 'over' }
   if (game.inCheck()) return { text: `${sideToMove} to move — check!`, tone: 'check' }
   return { text: `${sideToMove} to move`, tone: 'normal' }
+}
+
+const PROMO_GLYPHS: Record<'w' | 'b', Record<PromotionPiece, string>> = {
+  w: { q: '♕', r: '♖', b: '♗', n: '♘' },
+  b: { q: '♛', r: '♜', b: '♝', n: '♞' },
+}
+
+const PROMO_LABELS: Record<PromotionPiece, string> = {
+  q: 'Queen',
+  r: 'Rook',
+  b: 'Bishop',
+  n: 'Knight',
+}
+
+function PromotionPicker({
+  color,
+  onPick,
+  onCancel,
+}: {
+  color: 'w' | 'b'
+  onPick: (piece: PromotionPiece) => void
+  onCancel: () => void
+}) {
+  const order: PromotionPiece[] = ['q', 'r', 'b', 'n']
+  return (
+    <div className="promo" onClick={onCancel}>
+      <div className="promo__panel" onClick={(e) => e.stopPropagation()}>
+        <span className="promo__title">Promote to…</span>
+        <div className="promo__choices">
+          {order.map((piece) => (
+            <button
+              key={piece}
+              className="promo__piece"
+              onClick={() => onPick(piece)}
+              aria-label={PROMO_LABELS[piece]}
+              title={PROMO_LABELS[piece]}
+            >
+              {PROMO_GLYPHS[color][piece]}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function MoveList({ history }: { history: string[] }) {
