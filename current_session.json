@@ -3,13 +3,16 @@
   "project": "ai-chess",
   "started_at": "2026-06-01",
   "authors": ["Moti", "Claude"],
-  "notes": "Brand new project. Connector + indexer not wired in yet, so using a local session log instead of the semantic notebook for now.",
+  "notes": "Connector + indexer not wired into this project yet, so using this local session log instead of the semantic notebook. Claude's persistent memory has matching notes: ai-chess-project, ai-tournament-vision, llmsdk-contract.",
   "sessions": [
     {
       "session": 1,
       "date": "2026-06-01",
       "summary_start": "Kicked off the ai-chess project. Empty repo, no connector/indexer yet. Setting up the foundation.",
-      "summary_end": null
+      "summary_end": "BIG first session. Built a complete, human-playable chess UI (Vite + React + TS, chess.js as referee, react-chessboard v5). Full rules enforced, drag + click-to-move, legal-move highlights, last-move highlight, move list, status (check/mate/draws), undo/flip/reset. Added a pawn promotion picker (Q/R/B/N) replacing the auto-queen placeholder. Committed + pushed twice (Moti had git init'd; promotion picker is commit de9fa7d). THEN Moti pitched the north-star: an AI-vs-AI tournament (Claude vs Gemini vs Grok vs GPT). Discovered we have our own unified LLM SDK 'llmsdk' at localhost:8080 (80+ models, ~8 live now, cheap ones for dev). Fully reverse-engineered its 3 endpoints (see llmsdk-contract memory): stateless, returns content+reasoning+cost, gpt-4o-mini & claude-haiku both played legal moves from a FEN+legal-list prompt. Realized the SDK server IS our backend (just need a Vite proxy). Locked the build plan. Wrapped here before coding the AI part.",
+      "next_session_plan": "Phase 0: ChessPlayer interface + auto-play loop + game-mode picker (Human/Human, Human/Bot, Bot/Bot) driven by a free RandomPlayer (no SDK, no cost) to prove the engine. Then Phase 1: Vite proxy to localhost:8080 + LLMPlayer adapter, get gpt-4o-mini making real moves. Phase 2: per-side model picker. Phase 3: tournament engine (round-robin, leaderboard, live reasoning commentary, cost HUD, PGN export, illegal-move-rate + Stockfish-as-judge stats).",
+      "stack": "Vite 6 + React 19 + TypeScript, chess.js 1.4 (referee), react-chessboard 5.10 (board). Dev server: pnpm dev (port 5173/5174).",
+      "hard_rule": "chess.js = referee (owns all rules, no illegal move can stick). LLMs = players only. Stockfish, if added, is a JUDGE/analyst never a player."
     }
   ]
 }
